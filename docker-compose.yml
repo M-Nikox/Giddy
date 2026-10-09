@@ -1,0 +1,29 @@
+services:
+  # Go backend: scans the media folder and serves the files + the page.
+  # Not published to the host, so the only way in is through Caddy (and its login).
+  gallery-backend:
+    build: .
+    volumes:
+      - ./media:/media:ro
+    restart: unless-stopped
+    expose:
+      - "8080"
+
+  # Caddy sits in front and enforces HTTP basic auth.
+  # NOTE: this is plain HTTP on port 80, fine on a trusted LAN, but the
+  # password travels unencrypted. See README for the HTTPS option.
+  caddy:
+    image: caddy:2-alpine
+    ports:
+      - "80:80"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    restart: unless-stopped
+    depends_on:
+      - gallery-backend
+
+volumes:
+  caddy_data:
+  caddy_config:

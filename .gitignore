@@ -1,0 +1,5 @@
+media/*
+!media/.gitkeep
+.DS_Store
+.env
+Caddyfile

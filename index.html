@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Giddy</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23e8b04a'/%3E%3Ctext x='32' y='46' font-family='system-ui,sans-serif' font-size='42' font-weight='700' text-anchor='middle' fill='%23111110'%3EG%3C/text%3E%3C/svg%3E">
+<style>
+  :root {
+    --bg: #111110;
+    --surface: #1b1b19;
+    --line: #2a2a27;
+    --text: #ecebe6;
+    --muted: #8b8a83;
+    --accent: #e8b04a;
+    --ok: #6fbf73;
+    --bad: #d9674f;
+  }
+  @media (prefers-color-scheme: light) {
+    :root {
+      --bg: #f6f5f1; --surface: #e9e7e0; --line: #dcd9d0;
+      --text: #1d1d1a; --muted: #75736b; --accent: #b87a12;
+      --ok: #3d8b43; --bad: #bf4a33;
+    }
+  }
+  * { box-sizing: border-box; margin: 0; }
+  html { color-scheme: dark light; }
+  body {
+    background: var(--bg); color: var(--text);
+    font: 15px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif;
+    min-height: 100vh;
+  }
+  button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  header {
+    position: sticky; top: 0; z-index: 10;
+    display: flex; align-items: center; gap: 24px;
+    padding: 14px clamp(16px, 4vw, 40px);
+    background: color-mix(in srgb, var(--bg) 88%, transparent);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--line);
+  }
+  .brand { font-weight: 600; letter-spacing: .02em; }
+  nav { display: flex; gap: 20px; flex: 1; }
+  nav button {
+    padding: 4px 0; color: var(--muted);
+    border-bottom: 2px solid transparent;
+  }
+  nav button:hover { color: var(--text); }
+  nav button[aria-selected="true"] { color: var(--text); border-color: var(--accent); }
+  nav .n { color: var(--muted); font-variant-numeric: tabular-nums; margin-left: 4px; }
+
+  #status { display: flex; align-items: center; gap: 8px; color: var(--muted); font-size: 13px; }
+  #status i { width: 7px; height: 7px; border-radius: 50%; background: var(--ok); }
+  #status.off i { background: var(--bad); }
+  @media (max-width: 520px) { #status span { display: none; } }
+
+  main { padding: clamp(12px, 3vw, 32px) clamp(16px, 4vw, 40px) 64px; max-width: 1600px; margin: 0 auto; }
+  .grid { column-gap: 12px; columns: 2; }
+  @media (min-width: 700px)  { .grid { columns: 3; } }
+  @media (min-width: 1000px) { .grid { columns: 4; } }
+  @media (min-width: 1400px) { .grid { columns: 5; } }
+  .grid[hidden] { display: none; }
+
+  .tile {
+    display: block; width: 100%; margin: 0 0 12px; padding: 0;
+    position: relative; break-inside: avoid;
+    border-radius: 6px; overflow: hidden; background: var(--surface);
+    min-height: 80px;
+  }
+  .tile img, .tile video {
+    display: block; width: 100%; height: auto;
+    opacity: 0; transition: opacity .25s;
+  }
+  .tile.ready img, .tile.ready video { opacity: 1; }
+  .tile:hover img, .tile:hover video { opacity: .88; }
+  .tile.vid::after {
+    content: ""; position: absolute; right: 10px; bottom: 10px;
+    width: 28px; height: 28px; border-radius: 50%;
+    background: rgba(0,0,0,.6)
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='white'%3E%3Cpath d='M9 7v10l8-5z'/%3E%3C/svg%3E") center / 18px no-repeat;
+    pointer-events: none;
+  }
+
+  .empty { color: var(--muted); padding: 96px 0; text-align: center; }
+  .empty code { background: var(--surface); padding: 2px 6px; border-radius: 4px; }
+
+  /* lightbox */
+  #lb {
+    position: fixed; inset: 0; z-index: 50; background: rgba(0,0,0,.94);
+    display: grid; place-items: center; padding: 56px 16px;
+  }
+  #lb[hidden] { display: none; }
+  #lb-stage { display: contents; }
+  #lb-stage img, #lb-stage video { max-width: 100%; max-height: 100%; border-radius: 4px; }
+  #lb button {
+    position: absolute; color: #fff; width: 44px; height: 44px; border-radius: 50%;
+    display: grid; place-items: center; font-size: 22px; background: rgba(255,255,255,.08);
+  }
+  #lb button:hover { background: rgba(255,255,255,.18); }
+  #lb-close { top: 12px; right: 12px; }
+  #lb-prev  { left: 12px; top: 50%; transform: translateY(-50%); }
+  #lb-next  { right: 12px; top: 50%; transform: translateY(-50%); }
+  #lb-info {
+    position: absolute; left: 0; right: 0; bottom: 14px; text-align: center;
+    color: #aaa; font-size: 13px; padding: 0 70px;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  @media (max-width: 520px) { #lb-prev, #lb-next { top: auto; bottom: 8px; transform: none; } }
+</style>
+</head>
+<body>
+<header>
+  <span class="brand">Giddy</span>
+  <nav role="tablist">
+    <button role="tab" id="tab-photos" aria-selected="true">Photos<span class="n" id="n-photos">0</span></button>
+    <button role="tab" id="tab-videos" aria-selected="false">Videos<span class="n" id="n-videos">0</span></button>
+  </nav>
+  <div id="status" title="Checks for new files every 5 seconds"><i></i><span id="status-text">Connecting…</span></div>
+</header>
+
+<main>
+  <div class="grid" id="photos"></div>
+  <div class="grid" id="videos" hidden></div>
+  <p class="empty" id="empty" hidden></p>
+</main>
+
+<div id="lb" hidden role="dialog" aria-modal="true" aria-label="Media viewer">
+  <button id="lb-close" aria-label="Close">&#x2715;</button>
+  <button id="lb-prev" aria-label="Previous">&#x2039;</button>
+  <button id="lb-next" aria-label="Next">&#x203A;</button>
+  <div id="lb-stage"></div>
+  <div id="lb-info"></div>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+const POLL_MS = 5000;
+
+let tab = 'photos';
+let lastBody = '';
+let data = { photos: [], videos: [] };
+let lbIndex = -1;
+
+// Encode each path segment so names like "trip/beach #1?.jpg" survive.
+const url = p => '/media/' + p.split('/').map(encodeURIComponent).join('/');
+
+/* ---------- sync ---------- */
+async function sync() {
+  if (document.hidden) return;
+  try {
+    const res = await fetch('/api/media', { cache: 'no-store' });
+    if (!res.ok) throw new Error(res.status);
+    const body = await res.text();
+    if (body !== lastBody) { lastBody = body; data = JSON.parse(body); render(); }
+    setStatus(true);
+  } catch (e) { setStatus(false); }
+}
+function setStatus(ok) {
+  $('status').classList.toggle('off', !ok);
+  $('status-text').textContent = ok
+    ? 'Updated ' + new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+    : 'Offline';
+}
+setInterval(sync, POLL_MS);
+document.addEventListener('visibilitychange', sync);
+sync();
+
+/* ---------- render ---------- */
+function render() {
+  fill($('photos'), data.photos, false);
+  fill($('videos'), data.videos, true);
+  $('n-photos').textContent = data.photos.length;
+  $('n-videos').textContent = data.videos.length;
+  updateEmpty();
+}
+function fill(root, items, isVideo) {
+  root.replaceChildren(...items.map((it, i) => {
+    const b = document.createElement('button');
+    b.className = 'tile' + (isVideo ? ' vid' : '');
+    b.setAttribute('aria-label', 'Open ' + it.path);
+    b.onclick = () => openLb(i);
+    const m = document.createElement(isVideo ? 'video' : 'img');
+    const ready = () => b.classList.add('ready');
+    if (isVideo) {
+      m.muted = true; m.loop = true; m.playsInline = true; m.preload = 'metadata';
+      m.src = url(it.path) + '#t=0.1'; // #t=0.1 makes Safari paint a first frame
+      m.onloadeddata = ready;
+      b.onmouseenter = () => m.play().catch(() => {});
+      b.onmouseleave = () => { m.pause(); m.currentTime = 0.1; };
+    } else {
+      m.loading = 'lazy'; m.decoding = 'async'; m.alt = '';
+      m.onload = ready;
+      m.src = url(it.path);
+    }
+    m.onerror = () => { b.style.minHeight = '120px'; b.title = 'Could not load ' + it.path; ready(); };
+    b.appendChild(m);
+    return b;
+  }));
+}
+function updateEmpty() {
+  const e = $('empty');
+  const none = data[tab].length === 0;
+  e.hidden = !none;
+  if (none) e.innerHTML = 'No ' + tab + ' yet. Drop files into <code>./media</code>.';
+}
+
+/* ---------- tabs ---------- */
+function setTab(t) {
+  tab = t;
+  for (const k of ['photos', 'videos']) {
+    $(k).hidden = k !== t;
+    $('tab-' + k).setAttribute('aria-selected', String(k === t));
+  }
+  updateEmpty();
+}
+$('tab-photos').onclick = () => setTab('photos');
+$('tab-videos').onclick = () => setTab('videos');
+
+/* ---------- lightbox ---------- */
+function openLb(i) {
+  lbIndex = i;
+  const list = data[tab], it = list[i];
+  if (!it) return;
+  const el = document.createElement(tab === 'videos' ? 'video' : 'img');
+  el.src = url(it.path);
+  if (tab === 'videos') { el.controls = true; el.autoplay = true; el.playsInline = true; }
+  $('lb-stage').replaceChildren(el);
+  $('lb-info').textContent = `${i + 1} / ${list.length} · ${it.path}`;
+  const multi = list.length > 1;
+  $('lb-prev').hidden = $('lb-next').hidden = !multi;
+  $('lb').hidden = false;
+  document.body.style.overflow = 'hidden';
+  $('lb-close').focus();
+}
+function closeLb() {
+  $('lb').hidden = true;
+  $('lb-stage').replaceChildren(); // also stops any playing video
+  document.body.style.overflow = '';
+  lbIndex = -1;
+}
+function step(d) {
+  const n = data[tab].length;
+  if (lbIndex >= 0 && n) openLb((lbIndex + d + n) % n);
+}
+$('lb-close').onclick = closeLb;
+$('lb-prev').onclick = () => step(-1);
+$('lb-next').onclick = () => step(1);
+$('lb').onclick = e => { if (e.target === $('lb') || e.target === $('lb-stage')) closeLb(); };
+document.addEventListener('keydown', e => {
+  if ($('lb').hidden) return;
+  if (e.key === 'Escape') closeLb();
+  else if (e.key === 'ArrowLeft') step(-1);
+  else if (e.key === 'ArrowRight') step(1);
+});
+</script>
+</body>
+</html>

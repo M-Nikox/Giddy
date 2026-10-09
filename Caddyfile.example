@@ -1,0 +1,9 @@
+:80 {
+	basic_auth {
+		# Replace REPLACE_WITH_HASH with the output of:
+		#   docker run --rm caddy:2-alpine caddy hash-password --plaintext 'your-password'
+		admin REPLACE_WITH_HASH
+	}
+
+	reverse_proxy gallery-backend:8080
+}
