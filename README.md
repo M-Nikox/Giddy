@@ -2,9 +2,10 @@
 
 A tiny self-hosted photo and video gallery for your LAN. Point it at a folder, open it in a browser.
 
-- **Go backend** (~150 lines, stdlib only): scans the folder, serves files with Range support so video seeking works.
+- **Go backend** (~160 lines, stdlib only): scans the folder, serves files with Range support so video seeking works.
 - **Single-file frontend**: no build step, no CDN, no JS dependencies. Works fully offline.
-- **Caddy** in front for basic auth.
+- **Rich features**: Instant search, folder/album filtering, flexible sorting (Date, Name, Size, Type), density toggles, lightbox slideshow, mobile swipe gestures, and 1-click downloads.
+- **Caddy** in front for basic auth (or optional passwordless mode).
 - Picks up new files automatically (polls every 5s; the disk scan is cached for 3s).
 
 ## Run
@@ -12,13 +13,20 @@ A tiny self-hosted photo and video gallery for your LAN. Point it at a folder, o
 ```sh
 git clone <this-repo> giddy && cd giddy
 
-# 1. Create your Caddyfile and set a password (the real one is gitignored)
-cp Caddyfile.example Caddyfile
-docker run --rm caddy:2-alpine caddy hash-password --plaintext 'your-password'
-# paste the output over REPLACE_WITH_HASH in Caddyfile
+# 1. Setup environment & auth
+cp .env.example .env
 
-# 2. Add some media and start it
-cp -r ~/Pictures/holiday media/
+# Option A: Passwordless mode (no login prompt)
+# Set PASSWORDLESS=true in .env
+
+# Option B: Basic auth (default)
+# Generate a password hash and replace REPLACE_WITH_HASH in Caddyfile:
+docker run --rm caddy:2-alpine caddy hash-password --plaintext 'your-password'
+
+# 2. Configure media folder
+# Either drop files into ./media or set MEDIA_PATH in .env
+
+# 3. Start it
 docker compose up -d --build
 ```
 
@@ -34,12 +42,24 @@ To change the password later, generate a new hash the same way, replace it in `C
 - Newest files first (by modified time).
 - Auth is over plain HTTP. On a trusted home LAN that's usually fine; for HTTPS, use a hostname in the Caddyfile with `tls internal` and trust Caddy's root CA on your devices.
 
+## Shortcuts & Controls
+
+- **`Left` / `Right`**: Previous / Next media in lightbox (or swipe left/right on touchscreens)
+- **`Space`**: Start / Pause slideshow
+- **`Esc`**: Close lightbox (browser Back button also closes it)
+- **Grid density**: Toggle between ▦ Compact, ⊞ Standard, and ⊡ Large previews
+
 ## Config
 
-| Env var     | Default  | Purpose              |
-|-------------|----------|----------------------|
-| `MEDIA_DIR` | `/media` | Folder to scan/serve |
-| `ADDR`      | `:8080`  | Backend listen addr  |
+Environment variables can be configured in a `.env` file (see `.env.example`):
+
+| Env var        | Default   | Purpose                                    |
+|----------------|-----------|--------------------------------------------|
+| `MEDIA_PATH`   | `./media` | Host folder containing photos/videos       |
+| `PORT`         | `80`      | Host HTTP port exposed by Caddy            |
+| `PASSWORDLESS` | `false`   | Set to `true` to disable basic auth        |
+| `MEDIA_DIR`    | `/media`  | Backend folder to scan/serve (in container)|
+| `ADDR`         | `:8080`   | Backend listen addr (in container)         |
 
 ## License
 

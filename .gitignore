@@ -1,5 +1,21 @@
+# Media directory (keep only .gitkeep)
 media/*
 !media/.gitkeep
-.DS_Store
+
+# Sensitive and environment files
 .env
+.env.*
+!.env.example
 Caddyfile
+
+# Operating System files
+.DS_Store
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+[Dd]esktop.ini
+
+# Editor artifacts
+.vscode/
+.idea/

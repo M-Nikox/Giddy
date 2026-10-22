@@ -9,6 +9,7 @@
   :root {
     --bg: #111110;
     --surface: #1b1b19;
+    --surface-hover: #262623;
     --line: #2a2a27;
     --text: #ecebe6;
     --muted: #8b8a83;
@@ -18,7 +19,7 @@
   }
   @media (prefers-color-scheme: light) {
     :root {
-      --bg: #f6f5f1; --surface: #e9e7e0; --line: #dcd9d0;
+      --bg: #f6f5f1; --surface: #e9e7e0; --surface-hover: #dedbd1; --line: #dcd9d0;
       --text: #1d1d1a; --muted: #75736b; --accent: #b87a12;
       --ok: #3d8b43; --bad: #bf4a33;
     }
@@ -30,38 +31,103 @@
     font: 15px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif;
     min-height: 100vh;
   }
-  button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; }
+  button, select, input { font: inherit; color: inherit; background: none; border: 0; }
+  button { cursor: pointer; }
   :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
+  /* Header */
   header {
     position: sticky; top: 0; z-index: 10;
-    display: flex; align-items: center; gap: 24px;
-    padding: 14px clamp(16px, 4vw, 40px);
-    background: color-mix(in srgb, var(--bg) 88%, transparent);
-    backdrop-filter: blur(10px);
+    display: flex; align-items: center; justify-content: space-between; gap: 16px;
+    padding: 12px clamp(16px, 4vw, 40px);
+    background: color-mix(in srgb, var(--bg) 90%, transparent);
+    backdrop-filter: blur(12px);
     border-bottom: 1px solid var(--line);
+    flex-wrap: wrap;
   }
-  .brand { font-weight: 600; letter-spacing: .02em; }
-  nav { display: flex; gap: 20px; flex: 1; }
+  .header-left { display: flex; align-items: center; gap: 24px; }
+  .brand { font-weight: 700; font-size: 17px; letter-spacing: .02em; }
+  nav { display: flex; gap: 16px; }
   nav button {
-    padding: 4px 0; color: var(--muted);
-    border-bottom: 2px solid transparent;
+    padding: 6px 0; color: var(--muted);
+    border-bottom: 2px solid transparent; font-weight: 500;
   }
   nav button:hover { color: var(--text); }
   nav button[aria-selected="true"] { color: var(--text); border-color: var(--accent); }
-  nav .n { color: var(--muted); font-variant-numeric: tabular-nums; margin-left: 4px; }
+  nav .n { color: var(--muted); font-variant-numeric: tabular-nums; margin-left: 5px; font-size: 13px; }
 
   #status { display: flex; align-items: center; gap: 8px; color: var(--muted); font-size: 13px; }
   #status i { width: 7px; height: 7px; border-radius: 50%; background: var(--ok); }
   #status.off i { background: var(--bad); }
-  @media (max-width: 520px) { #status span { display: none; } }
 
-  main { padding: clamp(12px, 3vw, 32px) clamp(16px, 4vw, 40px) 64px; max-width: 1600px; margin: 0 auto; }
+  /* Toolbar */
+  .toolbar {
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    padding: 12px clamp(16px, 4vw, 40px);
+    max-width: 1600px; margin: 0 auto;
+    flex-wrap: wrap;
+  }
+  .toolbar-group { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+
+  .search-wrap {
+    position: relative; display: flex; align-items: center;
+    background: var(--surface); border: 1px solid var(--line);
+    border-radius: 6px; padding: 0 10px; min-width: 220px;
+  }
+  .search-wrap:focus-within { border-color: var(--accent); }
+  .search-wrap svg { width: 15px; height: 15px; fill: var(--muted); margin-right: 8px; flex-shrink: 0; }
+  .search-wrap input {
+    padding: 6px 0; width: 100%; color: var(--text); font-size: 13px; outline: none;
+  }
+  .search-wrap input::placeholder { color: var(--muted); }
+  .search-clear {
+    color: var(--muted); font-size: 14px; padding: 2px 4px; display: none;
+  }
+  .search-wrap.has-text .search-clear { display: block; }
+  .search-clear:hover { color: var(--text); }
+
+  select {
+    background: var(--surface); color: var(--text);
+    border: 1px solid var(--line); border-radius: 6px;
+    padding: 6px 10px; font-size: 13px; cursor: pointer; outline: none;
+  }
+  select:hover { background: var(--surface-hover); }
+  select:focus-visible { border-color: var(--accent); }
+
+  /* Density switcher */
+  .density-toggles {
+    display: flex; background: var(--surface); border: 1px solid var(--line);
+    border-radius: 6px; overflow: hidden;
+  }
+  .density-btn {
+    padding: 5px 9px; font-size: 13px; color: var(--muted);
+    border-right: 1px solid var(--line); display: grid; place-items: center;
+  }
+  .density-btn:last-child { border-right: none; }
+  .density-btn:hover { color: var(--text); background: var(--surface-hover); }
+  .density-btn[aria-pressed="true"] { color: var(--accent); background: var(--surface-hover); font-weight: 600; }
+
+  /* Main Grid */
+  main { padding: 4px clamp(16px, 4vw, 40px) 64px; max-width: 1600px; margin: 0 auto; }
+  
   .grid { column-gap: 12px; columns: 2; }
   @media (min-width: 700px)  { .grid { columns: 3; } }
   @media (min-width: 1000px) { .grid { columns: 4; } }
   @media (min-width: 1400px) { .grid { columns: 5; } }
   .grid[hidden] { display: none; }
+
+  /* Compact density */
+  .grid.compact { column-gap: 8px; columns: 3; }
+  .grid.compact .tile { margin-bottom: 8px; }
+  @media (min-width: 700px)  { .grid.compact { columns: 5; } }
+  @media (min-width: 1000px) { .grid.compact { columns: 7; } }
+  @media (min-width: 1400px) { .grid.compact { columns: 9; } }
+
+  /* Large density */
+  .grid.large { column-gap: 16px; columns: 1; }
+  .grid.large .tile { margin-bottom: 16px; }
+  @media (min-width: 700px)  { .grid.large { columns: 2; } }
+  @media (min-width: 1200px) { .grid.large { columns: 3; } }
 
   .tile {
     display: block; width: 100%; margin: 0 0 12px; padding: 0;
@@ -86,39 +152,104 @@
   .empty { color: var(--muted); padding: 96px 0; text-align: center; }
   .empty code { background: var(--surface); padding: 2px 6px; border-radius: 4px; }
 
-  /* lightbox */
+  /* Lightbox */
   #lb {
     position: fixed; inset: 0; z-index: 50; background: rgba(0,0,0,.94);
     display: grid; place-items: center; padding: 56px 16px;
+    touch-action: pan-y;
   }
   #lb[hidden] { display: none; }
   #lb-stage { display: contents; }
-  #lb-stage img, #lb-stage video { max-width: 100%; max-height: 100%; border-radius: 4px; }
-  #lb button {
-    position: absolute; color: #fff; width: 44px; height: 44px; border-radius: 50%;
-    display: grid; place-items: center; font-size: 22px; background: rgba(255,255,255,.08);
+  #lb-stage img, #lb-stage video {
+    max-width: 100%; max-height: 100%; border-radius: 4px;
+    user-select: none; -webkit-user-select: none;
   }
-  #lb button:hover { background: rgba(255,255,255,.18); }
-  #lb-close { top: 12px; right: 12px; }
-  #lb-prev  { left: 12px; top: 50%; transform: translateY(-50%); }
-  #lb-next  { right: 12px; top: 50%; transform: translateY(-50%); }
+
+  #lb-controls {
+    position: absolute; top: 12px; right: 12px;
+    display: flex; gap: 8px; z-index: 60;
+  }
+  .lb-btn {
+    color: #fff; width: 44px; height: 44px; border-radius: 50%;
+    display: grid; place-items: center; font-size: 18px;
+    background: rgba(255,255,255,.08); text-decoration: none;
+    transition: background .2s, transform .1s;
+  }
+  .lb-btn:hover { background: rgba(255,255,255,.2); }
+  .lb-btn:active { transform: scale(.95); }
+  .lb-btn.active { color: var(--accent); background: rgba(232, 176, 74, 0.25); }
+
+  #lb-prev, #lb-next {
+    position: absolute; color: #fff; width: 48px; height: 48px; border-radius: 50%;
+    display: grid; place-items: center; font-size: 26px; background: rgba(255,255,255,.08);
+  }
+  #lb-prev:hover, #lb-next:hover { background: rgba(255,255,255,.2); }
+  #lb-prev  { left: 14px; top: 50%; transform: translateY(-50%); }
+  #lb-next  { right: 14px; top: 50%; transform: translateY(-50%); }
+
   #lb-info {
-    position: absolute; left: 0; right: 0; bottom: 14px; text-align: center;
-    color: #aaa; font-size: 13px; padding: 0 70px;
+    position: absolute; left: 50%; bottom: 14px; transform: translateX(-50%);
+    color: #ecebe6; font-size: 13px; max-width: 90vw;
+    display: flex; align-items: center; gap: 10px;
+    background: rgba(18, 18, 16, 0.75); backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 20px; padding: 6px 16px;
     overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    pointer-events: none;
   }
-  @media (max-width: 520px) { #lb-prev, #lb-next { top: auto; bottom: 8px; transform: none; } }
+  #lb-info .dot { opacity: 0.4; }
+
+  @media (max-width: 600px) {
+    #lb-prev, #lb-next { top: auto; bottom: 8px; transform: none; width: 40px; height: 40px; }
+    #lb-prev { left: 16px; }
+    #lb-next { right: 16px; }
+    #lb-info { bottom: 60px; font-size: 12px; padding: 4px 12px; }
+    .search-wrap { min-width: 100%; }
+  }
 </style>
 </head>
 <body>
 <header>
-  <span class="brand">Giddy</span>
-  <nav role="tablist">
-    <button role="tab" id="tab-photos" aria-selected="true">Photos<span class="n" id="n-photos">0</span></button>
-    <button role="tab" id="tab-videos" aria-selected="false">Videos<span class="n" id="n-videos">0</span></button>
-  </nav>
+  <div class="header-left">
+    <span class="brand">Giddy</span>
+    <nav role="tablist">
+      <button role="tab" id="tab-photos" aria-selected="true">Photos<span class="n" id="n-photos">0</span></button>
+      <button role="tab" id="tab-videos" aria-selected="false">Videos<span class="n" id="n-videos">0</span></button>
+    </nav>
+  </div>
   <div id="status" title="Checks for new files every 5 seconds"><i></i><span id="status-text">Connecting…</span></div>
 </header>
+
+<div class="toolbar">
+  <div class="toolbar-group" style="flex: 1; min-width: 220px;">
+    <div class="search-wrap" id="search-wrap">
+      <svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+      <input id="search-input" type="search" placeholder="Search filenames or folders…" autocomplete="off">
+      <button class="search-clear" id="search-clear" aria-label="Clear search" tabindex="-1">✕</button>
+    </div>
+    <select id="folder-select" aria-label="Filter by folder">
+      <option value="">📁 All Folders</option>
+    </select>
+  </div>
+
+  <div class="toolbar-group">
+    <select id="sort-select" aria-label="Sort media">
+      <option value="mod-desc">📅 Date Modified (Newest)</option>
+      <option value="mod-asc">📅 Date Modified (Oldest)</option>
+      <option value="name-asc">🔤 Name (A → Z)</option>
+      <option value="name-desc">🔤 Name (Z → A)</option>
+      <option value="size-desc">⚖️ Size (Largest)</option>
+      <option value="size-asc">⚖️ Size (Smallest)</option>
+      <option value="type-asc">📁 Type (Extension)</option>
+    </select>
+
+    <div class="density-toggles" role="group" aria-label="Grid size">
+      <button class="density-btn" id="density-compact" title="Compact grid" aria-pressed="false">▦</button>
+      <button class="density-btn" id="density-standard" title="Standard grid" aria-pressed="true">⊞</button>
+      <button class="density-btn" id="density-large" title="Large preview grid" aria-pressed="false">⊡</button>
+    </div>
+  </div>
+</div>
 
 <main>
   <div class="grid" id="photos"></div>
@@ -127,9 +258,15 @@
 </main>
 
 <div id="lb" hidden role="dialog" aria-modal="true" aria-label="Media viewer">
-  <button id="lb-close" aria-label="Close">&#x2715;</button>
-  <button id="lb-prev" aria-label="Previous">&#x2039;</button>
-  <button id="lb-next" aria-label="Next">&#x203A;</button>
+  <div id="lb-controls">
+    <button class="lb-btn" id="lb-play" title="Slideshow (Space)" aria-label="Play slideshow">▶</button>
+    <a class="lb-btn" id="lb-download" title="Download original" aria-label="Download" download>
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
+    </a>
+    <button class="lb-btn" id="lb-close" title="Close (Esc)" aria-label="Close">&#x2715;</button>
+  </div>
+  <button id="lb-prev" aria-label="Previous (Left arrow)">&#x2039;</button>
+  <button id="lb-next" aria-label="Next (Right arrow)">&#x203A;</button>
   <div id="lb-stage"></div>
   <div id="lb-info"></div>
 </div>
@@ -137,26 +274,77 @@
 <script>
 const $ = id => document.getElementById(id);
 const POLL_MS = 5000;
+const SLIDESHOW_INTERVAL_MS = 4000;
 
 let tab = 'photos';
 let lastBody = '';
 let data = { photos: [], videos: [] };
+let filteredData = { photos: [], videos: [] };
 let lbIndex = -1;
+let lbActive = false;
+let slideshowTimer = null;
 
-// Encode each path segment so names like "trip/beach #1?.jpg" survive.
+// Touch swipe tracking
+let touchStartX = 0, touchStartY = 0;
+
+// Escape HTML entities to prevent XSS from filenames/folders
+function escapeHtml(str) {
+  if (!str) return '';
+  return String(str).replace(/[&<>"']/g, m => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+  })[m]);
+}
+
+// Format helpers
 const url = p => '/media/' + p.split('/').map(encodeURIComponent).join('/');
 
-/* ---------- sync ---------- */
+function formatSize(bytes) {
+  if (!bytes || bytes <= 0) return '';
+  const units = ['B', 'KB', 'MB', 'GB'];
+  let i = 0, sz = bytes;
+  while (sz >= 1024 && i < units.length - 1) { sz /= 1024; i++; }
+  return sz.toFixed(i === 0 ? 0 : 1) + ' ' + units[i];
+}
+
+function formatDate(unixSec) {
+  if (!unixSec) return '';
+  const d = new Date(unixSec * 1000);
+  return d.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
+}
+
+setDensity('standard');
+
+/* ---------- Sync with backend ---------- */
 async function sync() {
   if (document.hidden) return;
   try {
     const res = await fetch('/api/media', { cache: 'no-store' });
     if (!res.ok) throw new Error(res.status);
     const body = await res.text();
-    if (body !== lastBody) { lastBody = body; data = JSON.parse(body); render(); }
+    if (body !== lastBody) {
+      const currentPath = (lbIndex !== -1 && filteredData[tab] && filteredData[tab][lbIndex])
+        ? filteredData[tab][lbIndex].path
+        : null;
+
+      lastBody = body;
+      data = JSON.parse(body);
+      updateFolderDropdown();
+      applyFiltersAndRender();
+
+      if (currentPath) {
+        const newIdx = filteredData[tab].findIndex(it => it.path === currentPath);
+        if (newIdx !== -1) {
+          lbIndex = newIdx;
+          updateLbInfo();
+        }
+      } else {
+        checkDeepLink();
+      }
+    }
     setStatus(true);
   } catch (e) { setStatus(false); }
 }
+
 function setStatus(ok) {
   $('status').classList.toggle('off', !ok);
   $('status-text').textContent = ok
@@ -167,14 +355,84 @@ setInterval(sync, POLL_MS);
 document.addEventListener('visibilitychange', sync);
 sync();
 
-/* ---------- render ---------- */
-function render() {
-  fill($('photos'), data.photos, false);
-  fill($('videos'), data.videos, true);
-  $('n-photos').textContent = data.photos.length;
-  $('n-videos').textContent = data.videos.length;
+/* ---------- Folders ---------- */
+function updateFolderDropdown() {
+  const allItems = [...(data.photos || []), ...(data.videos || [])];
+  const folders = new Set();
+  for (const it of allItems) {
+    const idx = it.path.lastIndexOf('/');
+    if (idx !== -1) {
+      folders.add(it.path.substring(0, idx));
+    }
+  }
+  const currentVal = $('folder-select').value;
+  const sorted = Array.from(folders).sort();
+  $('folder-select').innerHTML = '<option value="">📁 All Folders</option>' +
+    sorted.map(f => `<option value="${escapeHtml(f)}">📁 ${escapeHtml(f)}</option>`).join('');
+  if (folders.has(currentVal)) {
+    $('folder-select').value = currentVal;
+  }
+}
+
+/* ---------- Filter & Sort Pipeline ---------- */
+function applyFiltersAndRender() {
+  const query = $('search-input').value.trim().toLowerCase();
+  const folder = $('folder-select').value;
+  const sortMode = $('sort-select').value;
+
+  const processList = list => {
+    let result = (list || []).slice();
+    if (folder) {
+      result = result.filter(it => it.path.startsWith(folder + '/') || it.path === folder);
+    }
+    if (query) {
+      result = result.filter(it => it.path.toLowerCase().includes(query));
+    }
+
+    result.sort((a, b) => {
+      switch (sortMode) {
+        case 'mod-desc':
+          return (b.mod || 0) - (a.mod || 0) || a.path.localeCompare(b.path);
+        case 'mod-asc':
+          return (a.mod || 0) - (b.mod || 0) || a.path.localeCompare(b.path);
+        case 'name-asc': {
+          const nameA = a.path.split('/').pop();
+          const nameB = b.path.split('/').pop();
+          return nameA.localeCompare(nameB, undefined, { numeric: true, sensitivity: 'base' }) || a.path.localeCompare(b.path);
+        }
+        case 'name-desc': {
+          const nameA = a.path.split('/').pop();
+          const nameB = b.path.split('/').pop();
+          return nameB.localeCompare(nameA, undefined, { numeric: true, sensitivity: 'base' }) || b.path.localeCompare(a.path);
+        }
+        case 'size-desc':
+          return (b.size || 0) - (a.size || 0) || a.path.localeCompare(b.path);
+        case 'size-asc':
+          return (a.size || 0) - (b.size || 0) || a.path.localeCompare(b.path);
+        case 'type-asc': {
+          const extA = a.path.includes('.') ? a.path.slice(a.path.lastIndexOf('.')).toLowerCase() : '';
+          const extB = b.path.includes('.') ? b.path.slice(b.path.lastIndexOf('.')).toLowerCase() : '';
+          return extA.localeCompare(extB) || a.path.localeCompare(b.path);
+        }
+        default:
+          return (b.mod || 0) - (a.mod || 0);
+      }
+    });
+
+    return result;
+  };
+
+  filteredData.photos = processList(data.photos);
+  filteredData.videos = processList(data.videos);
+
+  fill($('photos'), filteredData.photos, false);
+  fill($('videos'), filteredData.videos, true);
+
+  $('n-photos').textContent = filteredData.photos.length;
+  $('n-videos').textContent = filteredData.videos.length;
   updateEmpty();
 }
+
 function fill(root, items, isVideo) {
   root.replaceChildren(...items.map((it, i) => {
     const b = document.createElement('button');
@@ -185,7 +443,7 @@ function fill(root, items, isVideo) {
     const ready = () => b.classList.add('ready');
     if (isVideo) {
       m.muted = true; m.loop = true; m.playsInline = true; m.preload = 'metadata';
-      m.src = url(it.path) + '#t=0.1'; // #t=0.1 makes Safari paint a first frame
+      m.src = url(it.path) + '#t=0.1';
       m.onloadeddata = ready;
       b.onmouseenter = () => m.play().catch(() => {});
       b.onmouseleave = () => { m.pause(); m.currentTime = 0.1; };
@@ -199,14 +457,22 @@ function fill(root, items, isVideo) {
     return b;
   }));
 }
+
 function updateEmpty() {
   const e = $('empty');
-  const none = data[tab].length === 0;
-  e.hidden = !none;
-  if (none) e.innerHTML = 'No ' + tab + ' yet. Drop files into <code>./media</code>.';
+  const count = filteredData[tab].length;
+  const rawCount = (data[tab] || []).length;
+  e.hidden = count > 0;
+  if (count === 0) {
+    if (rawCount === 0) {
+      e.innerHTML = 'No ' + tab + ' yet. Drop files into <code>./media</code>.';
+    } else {
+      e.innerHTML = 'No ' + tab + ' match your current search/filters.';
+    }
+  }
 }
 
-/* ---------- tabs ---------- */
+/* ---------- Tabs & Controls ---------- */
 function setTab(t) {
   tab = t;
   for (const k of ['photos', 'videos']) {
@@ -218,41 +484,209 @@ function setTab(t) {
 $('tab-photos').onclick = () => setTab('photos');
 $('tab-videos').onclick = () => setTab('videos');
 
-/* ---------- lightbox ---------- */
-function openLb(i) {
-  lbIndex = i;
-  const list = data[tab], it = list[i];
+// Search events
+const searchInput = $('search-input');
+searchInput.addEventListener('input', () => {
+  $('search-wrap').classList.toggle('has-text', searchInput.value.length > 0);
+  applyFiltersAndRender();
+});
+$('search-clear').onclick = () => {
+  searchInput.value = '';
+  $('search-wrap').classList.remove('has-text');
+  searchInput.focus();
+  applyFiltersAndRender();
+};
+
+$('folder-select').onchange = applyFiltersAndRender;
+$('sort-select').onchange = applyFiltersAndRender;
+
+/* ---------- Density ---------- */
+function setDensity(d) {
+  for (const el of [$('photos'), $('videos')]) {
+    el.classList.remove('compact', 'large');
+    if (d === 'compact') el.classList.add('compact');
+    if (d === 'large') el.classList.add('large');
+  }
+  for (const k of ['compact', 'standard', 'large']) {
+    $('density-' + k).setAttribute('aria-pressed', String(k === d));
+  }
+}
+$('density-compact').onclick = () => setDensity('compact');
+$('density-standard').onclick = () => setDensity('standard');
+$('density-large').onclick = () => setDensity('large');
+
+/* ---------- Lightbox & Deep Linking ---------- */
+function clearStage() {
+  const stage = $('lb-stage');
+  const vids = stage.querySelectorAll('video');
+  for (const v of vids) {
+    v.pause();
+    v.removeAttribute('src');
+    v.load();
+  }
+  stage.replaceChildren();
+}
+
+function updateLbInfo() {
+  const list = filteredData[tab];
+  const it = list[lbIndex];
   if (!it) return;
-  const el = document.createElement(tab === 'videos' ? 'video' : 'img');
-  el.src = url(it.path);
-  if (tab === 'videos') { el.controls = true; el.autoplay = true; el.playsInline = true; }
+
+  const sizeText = formatSize(it.size);
+  const dateText = formatDate(it.mod);
+  const metaParts = [`${lbIndex + 1} / ${list.length}`, it.path];
+  if (sizeText) metaParts.push(sizeText);
+  if (dateText) metaParts.push(dateText);
+
+  $('lb-info').innerHTML = metaParts.map(p => `<span>${escapeHtml(p)}</span>`).join('<span class="dot">·</span>');
+}
+
+function openLb(i) {
+  const list = filteredData[tab];
+  const it = list[i];
+  if (!it) return;
+  lbIndex = i;
+
+  clearStage();
+
+  const isVideo = tab === 'videos';
+  const el = document.createElement(isVideo ? 'video' : 'img');
+  const mediaUrl = url(it.path);
+  el.src = mediaUrl;
+
+  if (isVideo) {
+    el.controls = true;
+    el.autoplay = true;
+    el.playsInline = true;
+    el.onended = () => { if (slideshowTimer) step(1); };
+  }
+
   $('lb-stage').replaceChildren(el);
-  $('lb-info').textContent = `${i + 1} / ${list.length} · ${it.path}`;
+
+  // Setup download button
+  const dl = $('lb-download');
+  dl.href = mediaUrl;
+  dl.setAttribute('download', it.path.split('/').pop());
+
+  updateLbInfo();
+
   const multi = list.length > 1;
   $('lb-prev').hidden = $('lb-next').hidden = !multi;
   $('lb').hidden = false;
   document.body.style.overflow = 'hidden';
-  $('lb-close').focus();
+
+  // Deep linking with History API
+  const hash = '#' + encodeURIComponent(it.path);
+  if (!lbActive) {
+    lbActive = true;
+    if (location.hash !== hash) {
+      history.pushState({ lb: true }, '', hash);
+    }
+  } else if (location.hash !== hash) {
+    history.replaceState({ lb: true }, '', hash);
+  }
 }
-function closeLb() {
+
+function closeLb(fromHistory = false) {
+  stopSlideshow();
+  clearStage();
   $('lb').hidden = true;
-  $('lb-stage').replaceChildren(); // also stops any playing video
   document.body.style.overflow = '';
   lbIndex = -1;
+  lbActive = false;
+  if (!fromHistory && location.hash) {
+    history.replaceState(null, '', location.pathname + location.search);
+  }
 }
+
 function step(d) {
-  const n = data[tab].length;
-  if (lbIndex >= 0 && n) openLb((lbIndex + d + n) % n);
+  const n = filteredData[tab].length;
+  if (lbIndex >= 0 && n) {
+    openLb((lbIndex + d + n) % n);
+  }
 }
-$('lb-close').onclick = closeLb;
-$('lb-prev').onclick = () => step(-1);
-$('lb-next').onclick = () => step(1);
-$('lb').onclick = e => { if (e.target === $('lb') || e.target === $('lb-stage')) closeLb(); };
+
+$('lb-close').onclick = () => closeLb(false);
+$('lb-prev').onclick = () => { stopSlideshow(); step(-1); };
+$('lb-next').onclick = () => { stopSlideshow(); step(1); };
+$('lb').onclick = e => { if (e.target === $('lb') || e.target === $('lb-stage')) closeLb(false); };
+
+/* ---------- Slideshow ---------- */
+function toggleSlideshow() {
+  if (slideshowTimer) {
+    stopSlideshow();
+  } else {
+    slideshowTimer = setInterval(() => step(1), SLIDESHOW_INTERVAL_MS);
+    $('lb-play').classList.add('active');
+    $('lb-play').textContent = '⏸';
+    $('lb-play').title = 'Pause Slideshow (Space)';
+  }
+}
+function stopSlideshow() {
+  if (slideshowTimer) {
+    clearInterval(slideshowTimer);
+    slideshowTimer = null;
+  }
+  $('lb-play').classList.remove('active');
+  $('lb-play').textContent = '▶';
+  $('lb-play').title = 'Slideshow (Space)';
+}
+$('lb-play').onclick = toggleSlideshow;
+
+/* ---------- Keyboard & Touch ---------- */
 document.addEventListener('keydown', e => {
   if ($('lb').hidden) return;
-  if (e.key === 'Escape') closeLb();
-  else if (e.key === 'ArrowLeft') step(-1);
-  else if (e.key === 'ArrowRight') step(1);
+  // Don't intercept typing if an input somehow has focus
+  if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') return;
+
+  if (e.key === 'Escape') closeLb(false);
+  else if (e.key === 'ArrowLeft') { stopSlideshow(); step(-1); }
+  else if (e.key === 'ArrowRight') { stopSlideshow(); step(1); }
+  else if (e.key === ' ' || e.code === 'Space') {
+    e.preventDefault();
+    toggleSlideshow();
+  }
+});
+
+const lbEl = $('lb');
+lbEl.addEventListener('touchstart', e => {
+  if (e.touches.length === 1) {
+    touchStartX = e.touches[0].clientX;
+    touchStartY = e.touches[0].clientY;
+  }
+}, { passive: true });
+
+lbEl.addEventListener('touchend', e => {
+  if (!touchStartX) return;
+  const dx = e.changedTouches[0].clientX - touchStartX;
+  const dy = e.changedTouches[0].clientY - touchStartY;
+  if (Math.abs(dx) > 45 && Math.abs(dx) > Math.abs(dy) * 1.5) {
+    stopSlideshow();
+    if (dx < 0) step(1);
+    else step(-1);
+  }
+  touchStartX = 0; touchStartY = 0;
+}, { passive: true });
+
+/* ---------- Deep Link on Load / Popstate ---------- */
+function checkDeepLink() {
+  if (!location.hash) return;
+  const targetPath = decodeURIComponent(location.hash.slice(1));
+  for (const t of ['photos', 'videos']) {
+    const idx = filteredData[t].findIndex(it => it.path === targetPath);
+    if (idx !== -1) {
+      if (tab !== t) setTab(t);
+      openLb(idx);
+      return;
+    }
+  }
+}
+window.addEventListener('popstate', () => {
+  if (!location.hash) {
+    if (!$('lb').hidden) closeLb(true);
+  } else {
+    checkDeepLink();
+  }
 });
 </script>
 </body>

@@ -15,7 +15,8 @@ import (
 
 type Item struct {
 	Path string `json:"path"`
-	Mod  int64  `json:"mod"` // unix seconds
+	Mod  int64  `json:"mod"`  // unix seconds
+	Size int64  `json:"size"` // file size in bytes
 }
 
 type MediaResponse struct {
@@ -27,7 +28,7 @@ var (
 	photoExt = map[string]bool{".jpg": true, ".jpeg": true, ".png": true, ".gif": true, ".webp": true, ".avif": true}
 	videoExt = map[string]bool{".mp4": true, ".webm": true, ".ogg": true, ".mov": true, ".mkv": true}
 
-	mu             sync.Mutex
+	mu             sync.RWMutex
 	cachedResponse []byte
 	lastScan       time.Time
 	// Re-scan the disk at most once per interval, however many clients poll.
@@ -72,6 +73,7 @@ func scanMedia(root string) ([]byte, error) {
 		item := Item{Path: filepath.ToSlash(rel)}
 		if info, infoErr := d.Info(); infoErr == nil {
 			item.Mod = info.ModTime().Unix()
+			item.Size = info.Size()
 		}
 		if isPhoto {
 			resp.Photos = append(resp.Photos, item)
@@ -99,7 +101,7 @@ func scanMedia(root string) ([]byte, error) {
 	return json.Marshal(resp)
 }
 
-// mediaFS serves files but refuses directories (no autoindex) and hidden paths.
+// mediaFS serves files but refuses directories (no autoindex), hidden paths, and non-media files.
 type mediaFS struct{ fs http.FileSystem }
 
 func (m mediaFS) Open(name string) (http.File, error) {
@@ -108,6 +110,12 @@ func (m mediaFS) Open(name string) (http.File, error) {
 			return nil, os.ErrNotExist
 		}
 	}
+
+	ext := strings.ToLower(filepath.Ext(name))
+	if !photoExt[ext] && !videoExt[ext] {
+		return nil, os.ErrNotExist
+	}
+
 	f, err := m.fs.Open(name)
 	if err != nil {
 		return nil, err
@@ -126,16 +134,29 @@ func main() {
 	os.MkdirAll(mediaDir, 0755)
 
 	http.HandleFunc("/api/media", func(w http.ResponseWriter, r *http.Request) {
-		mu.Lock()
-		if cachedResponse == nil || time.Since(lastScan) > scanInterval {
-			if data, err := scanMedia(mediaDir); err != nil {
-				log.Println("scan error:", err)
-			} else {
-				cachedResponse, lastScan = data, time.Now()
-			}
+		if r.Method != http.MethodGet && r.Method != http.MethodHead {
+			http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
+			return
 		}
+
+		mu.RLock()
+		stale := cachedResponse == nil || time.Since(lastScan) > scanInterval
 		body := cachedResponse
-		mu.Unlock()
+		mu.RUnlock()
+
+		if stale {
+			mu.Lock()
+			if cachedResponse == nil || time.Since(lastScan) > scanInterval {
+				lastScan = time.Now()
+				if data, err := scanMedia(mediaDir); err != nil {
+					log.Println("scan error:", err)
+				} else {
+					cachedResponse = data
+				}
+			}
+			body = cachedResponse
+			mu.Unlock()
+		}
 
 		if body == nil {
 			body = []byte(`{"photos":[],"videos":[]}`)
