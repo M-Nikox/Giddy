@@ -1,3 +1,9 @@
 media
 .git
+.env
+*.env
+.DS_Store
+Thumbs.db
+[Dd]esktop.ini
 README.md
+CHANGES.md

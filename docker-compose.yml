@@ -4,18 +4,23 @@ services:
   gallery-backend:
     build: .
     volumes:
-      - ./media:/media:ro
+      - ${MEDIA_PATH:-./media}:/media:ro
+    environment:
+      - MEDIA_DIR=/media
+      - ADDR=:8080
     restart: unless-stopped
     expose:
       - "8080"
 
-  # Caddy sits in front and enforces HTTP basic auth.
+  # Caddy sits in front and enforces HTTP basic auth (or runs passwordless if PASSWORDLESS=true).
   # NOTE: this is plain HTTP on port 80, fine on a trusted LAN, but the
   # password travels unencrypted. See README for the HTTPS option.
   caddy:
     image: caddy:2-alpine
     ports:
-      - "80:80"
+      - "${PORT:-80}:80"
+    environment:
+      - PASSWORDLESS=${PASSWORDLESS:-false}
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
       - caddy_data:/data
@@ -23,6 +28,16 @@ services:
     restart: unless-stopped
     depends_on:
       - gallery-backend
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        if [ "$$PASSWORDLESS" = "true" ]; then
+          echo "Starting Caddy in passwordless mode..."
+          exec caddy reverse-proxy --from :80 --to gallery-backend:8080
+        else
+          echo "Starting Caddy with authentication..."
+          exec caddy run --config /etc/caddy/Caddyfile --adapter caddyfile
+        fi
 
 volumes:
   caddy_data:
